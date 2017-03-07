@@ -1,18 +1,14 @@
-(ns posh.reagent
-  (:require-macros [reagent.ratom :refer [reaction]])
+(ns posh.rum
   (:require [posh.plugin-base :as base
-              :include-macros]
+             :include-macros]
             [datascript.core :as d]
-            [reagent.core :as r]
-            [reagent.ratom :as ra]))
+            [rum.core :as rum]))
 
 (defn make-reaction [query-ratom & {:keys [auto-run on-set on-dispose]}]
-  (ra/make-reaction (fn []
-                      ;;(println "RENDERING: " storage-key)
-                      @query-ratom)
-                    :auto-run auto-run
-                    :on-set on-set
-                    :on-dispose on-dispose))
+  (rum/derived-atom [query-ratom]
+      ::reaction-key
+    (fn [qr]
+      qr)))
 
 (def dcfg
   (let [dcfg {:db            d/db
@@ -24,8 +20,8 @@
               :transact!     d/transact!
               :listen!       d/listen!
               :conn?         d/conn?
-              :ratom         r/atom
+              :ratom         atom
               :make-reaction make-reaction}]
-   (assoc dcfg :pull (partial base/safe-pull dcfg))))
+    (assoc dcfg :pull (partial base/safe-pull dcfg))))
 
 (base/add-plugin dcfg)
